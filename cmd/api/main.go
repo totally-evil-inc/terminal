@@ -1,7 +1,20 @@
 package main
 
-import "fmt"
+import (
+	"log"
+
+	"github.com/muchirisworld/terminal/internal/server"
+)
 
 func main() {
-	fmt.Println("Hello, world!")
+	cfg := server.NewConfig()
+
+	if err := run(cfg); err != nil {
+		log.Fatal(err.Error())
+	}
+}
+
+func run(cfg *server.Config) error {
+	app := server.NewApplication(cfg)
+	return app.Run()
 }
