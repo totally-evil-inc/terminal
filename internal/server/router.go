@@ -7,7 +7,7 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 )
 
-func RegisterRoutes() http.Handler {
+func routes() http.Handler {
 	r := chi.NewRouter()
 	
 	r.Use(middleware.RequestID)

@@ -35,7 +35,7 @@ func NewConfig() *Config {
 func NewServer(cfg *Config) *http.Server {
 	srv := &http.Server{
 		Addr:    fmt.Sprintf(":%d", cfg.Port),
-		Handler: RegisterRoutes(),
+		Handler: routes(),
 	}
 
 	return srv
