@@ -1,0 +1,68 @@
+# Secrets and local configuration
+.env
+.env.*
+!.env.example
+!.env.sample
+
+# Go build outputs
+/bin/
+/build/
+/dist/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# Go workspace and tooling files
+go.work
+go.work.sum
+.gopath/
+
+# Test, coverage, and profiling artifacts
+coverage/
+coverage.*
+*.cover
+*.prof
+*.pprof
+*.trace
+
+# Generated files and future projections
+generated/
+gen/
+tmp/
+temp/
+cache/
+*.generated.go
+*_generated.go
+
+# Docker local overrides and mounted data
+docker-compose.override.yml
+docker-compose.*.local.yml
+.docker/
+docker-data/
+postgres-data/
+redis-data/
+
+# Logs and runtime files
+logs/
+*.log
+*.pid
+*.sock
+
+# Editor and IDE state
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Local agent/session metadata
+.agents/
+.codex/

@@ -1,0 +1,47 @@
+services:
+  postgres:
+    image: postgres:18
+    container_name: terminal-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-terminal}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-terminal}
+      POSTGRES_DB: ${POSTGRES_DB:-terminal}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    networks:
+      - backend-net
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  redis:
+    image: redis:8-alpine
+    container_name: terminal-redis
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    networks:
+      - backend-net
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
+networks:
+  backend-net:
+    driver: bridge
+
+volumes:
+  pgdata:
+  redis_data:
