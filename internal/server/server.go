@@ -40,6 +40,6 @@ func NewServer(cfg *Config) *http.Server {
 	return srv
 }
 
-func (a *Application) Run() error {
+func (a *Application) Start() error {
 	return a.server.ListenAndServe()
 }

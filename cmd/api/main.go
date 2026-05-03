@@ -16,5 +16,5 @@ func main() {
 
 func run(cfg *server.Config) error {
 	app := server.NewApplication(cfg)
-	return app.Run()
+	return app.Start()
 }
