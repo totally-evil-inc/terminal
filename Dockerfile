@@ -1,17 +1,21 @@
-FROM golang AS dev
+FROM golang:1.25-alpine AS air
 
 WORKDIR /app
 
 RUN go install github.com/air-verse/air@latest
 
+FROM golang:1.25-alpine AS dev
+
+WORKDIR /app
+
+COPY --from=air /go/bin/air /usr/local/bin/air
+
 COPY go.mod ./
 RUN go mod download
 
-COPY . .
-
 CMD ["air", "-c", ".air.toml"]
 
-FROM golang AS builder
+FROM golang:1.25-alpine AS builder
 
 WORKDIR /app
 

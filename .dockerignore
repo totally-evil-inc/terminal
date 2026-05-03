@@ -1,0 +1,11 @@
+.git
+.agents
+.codex
+.cache
+tmp
+logs
+coverage
+docker-data
+postgres-data
+redis-data
+*.log
