@@ -24,14 +24,18 @@ func main() {
 func run(ctx context.Context, cfg *server.Config) error {
 	a := server.NewApplication(cfg)
 
+	serverErr := make(chan error, 1)
 	go func() {
 		if err := a.Start(ctx); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			log.Printf("Server error: %d\n", err)
-			os.Exit(1)
+			serverErr <- err
 		}
 	}()
 
-	<-ctx.Done()
+	select {
+	case err := <-serverErr:
+		return err
+	case <-ctx.Done():
+	}
 
 	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), cfg.ShutdownTimeout)
 	defer shutdownCancel()
