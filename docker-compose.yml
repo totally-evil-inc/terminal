@@ -1,4 +1,30 @@
 services:
+  app:
+    build:
+      context: .
+      target: dev
+    container_name: terminal-api
+    restart: unless-stopped
+    user: "${UID:-1000}:${GID:-1000}"
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER:-terminal}:${POSTGRES_PASSWORD:-terminal}@postgres:5432/${POSTGRES_DB:-terminal}?sslmode=disable
+      GOCACHE: /app/.cache/go-build
+      GOMODCACHE: /app/.cache/go-mod
+      REDIS_ADDR: redis:6379
+    ports:
+      - "${APP_PORT:-8080}:8080"
+    networks:
+      - backend-net
+    volumes:
+      - .:/app
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
   postgres:
     image: postgres:18
     container_name: terminal-postgres

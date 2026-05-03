@@ -20,6 +20,7 @@
 go.work
 go.work.sum
 .gopath/
+.cache/
 
 # Test, coverage, and profiling artifacts
 coverage/
