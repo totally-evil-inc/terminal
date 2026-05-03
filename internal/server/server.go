@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"time"
@@ -31,15 +32,25 @@ func NewConfig() *Config {
 	}
 }
 
-func NewServer(cfg *Config) *http.Server {	
+func NewServer(cfg *Config) *http.Server {
 	srv := &http.Server{
-		Addr: fmt.Sprintf(":%d", cfg.Port),
+		Addr:    fmt.Sprintf(":%d", cfg.Port),
 		Handler: RegisterRoutes(),
 	}
 
 	return srv
 }
 
-func (a *Application) Start() error {
+func (a *Application) Start(ctx context.Context) error {
 	return a.server.ListenAndServe()
+}
+
+func (a *Application) Stop(ctx context.Context) error {
+	if err := a.server.Shutdown(ctx); err != nil {
+		return fmt.Errorf("failed to shutdown server: %w", err)
+	}
+
+	// TODO: close connecions
+
+	return nil
 }
