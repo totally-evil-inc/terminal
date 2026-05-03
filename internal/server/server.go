@@ -1,9 +1,7 @@
 package server
 
 import (
-	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"time"
 )
@@ -33,13 +31,10 @@ func NewConfig() *Config {
 	}
 }
 
-func NewServer(cfg *Config) *http.Server {
-	mux := http.NewServeMux()
-	mux.HandleFunc("/", testRoute)
-	
+func NewServer(cfg *Config) *http.Server {	
 	srv := &http.Server{
 		Addr: fmt.Sprintf(":%d", cfg.Port),
-		Handler: mux,
+		Handler: RegisterRoutes(),
 	}
 
 	return srv
@@ -47,13 +42,4 @@ func NewServer(cfg *Config) *http.Server {
 
 func (a *Application) Run() error {
 	return a.server.ListenAndServe()
-}
-
-func testRoute(w http.ResponseWriter, r *http.Request) {
-	_, err := r.Body.Read([]byte{})
-	if err != nil {
-		log.Printf("Error occurred %v\n", err.Error())
-	}
-	w.Header().Set("Content-type", "application/json")
-	json.NewEncoder(w).Encode("Naah we good")
 }
