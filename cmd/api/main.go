@@ -26,7 +26,7 @@ func run(ctx context.Context, cfg *server.Config) error {
 
 	serverErr := make(chan error, 1)
 	go func() {
-		if err := a.Start(ctx); err != nil && !errors.Is(err, http.ErrServerClosed) {
+		if err := a.Start(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			serverErr <- err
 		}
 	}()

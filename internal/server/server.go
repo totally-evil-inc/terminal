@@ -41,7 +41,7 @@ func NewServer(cfg *Config) *http.Server {
 	return srv
 }
 
-func (a *Application) Start(ctx context.Context) error {
+func (a *Application) Start() error {
 	return a.server.ListenAndServe()
 }
 
