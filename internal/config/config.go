@@ -77,6 +77,7 @@ func Load() (*Config, error) {
 		ConnMaxIdleTime: getDuration("DATABASE_CONN_MAX_IDLE_TIME", 5*time.Minute),
 	}
 
+
 	for _, s := range []any{appConfig, serverConfig, databaseConfig} {
 		if err := validate.Struct(s); err != nil {
 			var ve validator.ValidationErrors
@@ -84,9 +85,12 @@ func Load() (*Config, error) {
 				for _, e := range ve {
 					errs = append(errs, formatValidationError(e))
 				}
+			} else {
+				errs = append(errs, err)
 			}
 		}
 	}
+
 
 	if len(errs) > 0 {
 		return nil, errors.Join(errs...)
