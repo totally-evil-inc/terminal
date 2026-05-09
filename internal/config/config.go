@@ -58,14 +58,15 @@ func Load() (*Config, error) {
 	}
 	serverConfig := ServerConfig{
 		Port: getInt("PORT", 8080),
-		ShutdownTimeout: getDuration("SHUTDOWN_TIMOUT", 5*time.Minute),
+		ShutdownTimeout: getDuration("SHUTDOWN_TIMEOUT", 5*time.Minute),
 	}
 	databaseConfig := DatabaseConfig{
 		URL:             getRequiredString("DATABASE_URL"),
         MaxOpenConns:    getInt("DATABASE_MAX_OPEN_CONNS", 10),
         MaxIdleConns:    getInt("DATABASE_MAX_IDLE_CONNS", 10),
         ConnMaxLifetime: getDuration("DATABASE_CONN_MAX_LIFETIME", 30*time.Minute),
-        ConnMaxIdleTime: getDuration("DATABASE_CONN_MAX_IDLE_TIME", 5*time.Minute),}
+        ConnMaxIdleTime: getDuration("DATABASE_CONN_MAX_IDLE_TIME", 5*time.Minute),
+	}
 
 	if err := validate.Struct(appConfig); err != nil {
 		validationErrs = append(validationErrs, err)
