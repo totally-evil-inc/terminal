@@ -2,6 +2,7 @@ package config
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"strconv"
 	"time"
@@ -45,12 +46,10 @@ type DatabaseConfig struct {
 	ConnMaxIdleTime time.Duration `validate:"required"`
 }
 
-var validationErrs []error
-
-
 var validate *validator.Validate
 
 func Load() (*Config, error) {
+	var validationErrs []error
 	validate = validator.New(validator.WithRequiredStructEnabled())
 
 	appConfig := AppConfig{
@@ -60,12 +59,16 @@ func Load() (*Config, error) {
 		Port: getInt("PORT", 8080),
 		ShutdownTimeout: getDuration("SHUTDOWN_TIMEOUT", 5*time.Minute),
 	}
+	dbURL, err := getRequiredString("DATABASE_URL")
+	if err != nil {
+		validationErrs = append(validationErrs, err)
+	}
 	databaseConfig := DatabaseConfig{
-		URL:             getRequiredString("DATABASE_URL"),
-        MaxOpenConns:    getInt("DATABASE_MAX_OPEN_CONNS", 10),
-        MaxIdleConns:    getInt("DATABASE_MAX_IDLE_CONNS", 10),
-        ConnMaxLifetime: getDuration("DATABASE_CONN_MAX_LIFETIME", 30*time.Minute),
-        ConnMaxIdleTime: getDuration("DATABASE_CONN_MAX_IDLE_TIME", 5*time.Minute),
+		URL:             dbURL,
+		MaxOpenConns:    getInt("DATABASE_MAX_OPEN_CONNS", 10),
+		MaxIdleConns:    getInt("DATABASE_MAX_IDLE_CONNS", 10),
+		ConnMaxLifetime: getDuration("DATABASE_CONN_MAX_LIFETIME", 30*time.Minute),
+		ConnMaxIdleTime: getDuration("DATABASE_CONN_MAX_IDLE_TIME", 5*time.Minute),
 	}
 
 	if err := validate.Struct(appConfig); err != nil {
@@ -100,13 +103,13 @@ func getString(key string, fallback string) string {
 	return val
 }
 
-func getRequiredString(key string) string {
+func getRequiredString(key string) (string, error) {
 	val, ok := os.LookupEnv(key)
 	if !ok || val == "" {
-		return ""
+		return "", fmt.Errorf("%s is required", key)
 	}
 
-	return val
+	return val, nil
 }
 
 func getInt(key string, fallback int) int {
