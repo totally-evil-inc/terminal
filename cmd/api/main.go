@@ -33,6 +33,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to connect to database: %v", err)
 	}
+	defer db.Close()
 
 	app := &Application{
 		server: server.NewServer(cfg.Server),
