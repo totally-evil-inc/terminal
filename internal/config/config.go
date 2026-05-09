@@ -13,9 +13,9 @@ import (
 // configs and is the single value passed into the application at startup.
 // Load it once in main via Load(), then hand the relevant sub-config to each subsystem.
 type Config struct {
-	App      AppConfig      `validate:"required"`
-	Server   ServerConfig   `validate:"required"`
-	Database DatabaseConfig `validate:"required"`
+	App      *AppConfig      `validate:"required"`
+	Server   *ServerConfig   `validate:"required"`
+	Database *DatabaseConfig `validate:"required"`
 }
 
 // AppConfig holds application-wide settings that don't belong to a specific
@@ -80,13 +80,9 @@ func Load() (*Config, error) {
 	}
 
 	cfg := Config{
-		App:      appConfig,
-		Server:   serverConfig,
-		Database: databaseConfig,
-	}
-
-	if err := validate.Struct(cfg); err != nil {
-		l.errs = append(l.errs, err)
+		App:      &appConfig,
+		Server:   &serverConfig,
+		Database: &databaseConfig,
 	}
 
 	if len(l.errs) > 0 {
