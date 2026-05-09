@@ -15,15 +15,15 @@ import (
 // configs and is the single value passed into the application at startup.
 // Load it once in main via Load(), then hand the relevant sub-config to each subsystem.
 type Config struct {
-	App      *AppConfig      `validate:"required"`
-	Server   *ServerConfig   `validate:"required"`
-	Database *DatabaseConfig `validate:"required"`
+	App      *AppConfig
+	Server   *ServerConfig
+	Database *DatabaseConfig
 }
 
 // AppConfig holds application-wide settings that don't belong to a specific
 // subsystem, such as the runtime environment (development, staging, production).
 type AppConfig struct {
-	Env string `env:"APP_ENV" validate:"required"`
+	Env string `env:"APP_ENV"`
 }
 
 // ServerConfig holds everything the HTTP layer needs to bind and operate:
