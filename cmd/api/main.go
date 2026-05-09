@@ -9,24 +9,47 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/jmoiron/sqlx"
+	"github.com/muchirisworld/terminal/database"
+	"github.com/muchirisworld/terminal/internal/config"
 	"github.com/muchirisworld/terminal/internal/server"
 )
 
-func main() {
-	ctx := gracefulShutdown()
-	cfg := server.NewConfig()
+type Application struct {
+	server *http.Server
+	db     *sqlx.DB
+	cfg    *config.Config
+}
 
-	if err := run(ctx, cfg); err != nil {
-		log.Fatal(err.Error())
+func main() {
+	ctx := signalContext()
+
+	cfg, err := config.Load()
+	if err != nil {
+		log.Fatalf("App failed to start up: %v", err)
+	}
+
+	db, err := database.NewDatabase(cfg.Database)
+	if err != nil {
+		log.Fatalf("Failed to connect to database: %v", err)
+	}
+	defer db.Close()
+
+	app := &Application{
+		server: server.NewServer(cfg.Server),
+		db:     db,
+		cfg:    cfg,
+	}
+
+	if err := app.run(ctx); err != nil {
+		log.Fatal(err)
 	}
 }
 
-func run(ctx context.Context, cfg *server.Config) error {
-	a := server.NewApplication(cfg)
-
+func (a *Application) run(ctx context.Context) error {
 	serverErr := make(chan error, 1)
 	go func() {
-		if err := a.Start(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+		if err := server.Start(a.server); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			serverErr <- err
 		}
 	}()
@@ -37,13 +60,13 @@ func run(ctx context.Context, cfg *server.Config) error {
 	case <-ctx.Done():
 	}
 
-	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), cfg.ShutdownTimeout)
+	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), a.cfg.Server.ShutdownTimeout)
 	defer shutdownCancel()
 
-	return a.Stop(shutdownCtx)
+	return server.Stop(shutdownCtx, a.server)
 }
 
-func gracefulShutdown() context.Context {
+func signalContext() context.Context {
 	ctx, cancel := context.WithCancel(context.Background())
 	go func() {
 		c := make(chan os.Signal, 1)
