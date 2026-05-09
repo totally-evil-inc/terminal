@@ -45,14 +45,12 @@ type DatabaseConfig struct {
 	ConnMaxIdleTime time.Duration `validate:"required"`
 }
 
-type loader struct {
-	errs []error
-}
+var validationErrs []error
+
 
 var validate *validator.Validate
 
 func Load() (*Config, error) {
-	l := &loader{}
 	validate = validator.New(validator.WithRequiredStructEnabled())
 
 	appConfig := AppConfig{
@@ -70,13 +68,13 @@ func Load() (*Config, error) {
         ConnMaxIdleTime: getDuration("DATABASE_CONN_MAX_IDLE_TIME", 5*time.Minute),}
 
 	if err := validate.Struct(appConfig); err != nil {
-		l.errs = append(l.errs, err)
+		validationErrs = append(validationErrs, err)
 	}
 	if err := validate.Struct(serverConfig); err != nil {
-		l.errs = append(l.errs, err)
+		validationErrs = append(validationErrs, err)
 	}
 	if err := validate.Struct(databaseConfig); err != nil {
-		l.errs = append(l.errs, err)
+		validationErrs = append(validationErrs, err)
 	}
 
 	cfg := Config{
@@ -85,8 +83,8 @@ func Load() (*Config, error) {
 		Database: &databaseConfig,
 	}
 
-	if len(l.errs) > 0 {
-		return nil, errors.Join(l.errs...)
+	if len(validationErrs) > 0 {
+		return nil, errors.Join(validationErrs...)
 	}
 
 	return &cfg, nil
