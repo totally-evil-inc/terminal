@@ -9,24 +9,29 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/muchirisworld/terminal/internal/config"
 	"github.com/muchirisworld/terminal/internal/server"
 )
 
 func main() {
 	ctx := gracefulShutdown()
-	cfg := server.NewConfig()
+	config, err := config.Load()
+	if err != nil {
+		log.Fatalf("App failed to start up: %v", err)
+	}
+	serverCfg := config.Server
 
-	if err := run(ctx, cfg); err != nil {
+	if err := run(ctx, serverCfg); err != nil {
 		log.Fatal(err.Error())
 	}
 }
 
-func run(ctx context.Context, cfg *server.Config) error {
-	a := server.NewApplication(cfg)
+func run(ctx context.Context, cfg *config.ServerConfig) error {
+	s := server.NewServer(cfg)
 
 	serverErr := make(chan error, 1)
 	go func() {
-		if err := a.Start(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+		if err := server.Start(s); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			serverErr <- err
 		}
 	}()
@@ -40,7 +45,7 @@ func run(ctx context.Context, cfg *server.Config) error {
 	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), cfg.ShutdownTimeout)
 	defer shutdownCancel()
 
-	return a.Stop(shutdownCtx)
+	return server.Stop(s, shutdownCtx)
 }
 
 func gracefulShutdown() context.Context {
