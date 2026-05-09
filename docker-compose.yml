@@ -15,7 +15,7 @@ services:
       GOMODCACHE: /app/.cache/go-mod
       REDIS_ADDR: redis:6379
     ports:
-      - "${APP_PORT:-8080}:8080"
+      - "${PORT:-8080}:${PORT:-8080}"
     networks:
       - backend-net
     volumes:

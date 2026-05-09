@@ -2,8 +2,6 @@
 
 Go API service with a local development workflow based on Docker Compose, Postgres, Redis, and Air live reload.
 
-The project currently has a minimal entrypoint at `cmd/api/main.go`. It prints `Hello, world!` and exits. Once the API becomes a long-running HTTP server, the same development setup will keep it running and reload it on source changes.
-
 ## Requirements
 
 - Docker
@@ -26,6 +24,8 @@ Local configuration is read from `.env`.
 Create a local `.env` file with your own values. Keep `.env` out of version control.
 
 ```env
+PORT=8080
+
 POSTGRES_USER=<local-postgres-user>
 POSTGRES_PASSWORD=<local-postgres-pass>
 POSTGRES_DB=terminal
@@ -36,6 +36,8 @@ REDIS_PORT=6379
 DATABASE_URL=postgres://<local-postgres-user>:<local-postgres-pass>@localhost:5432/terminal?sslmode=disable
 REDIS_ADDR=localhost:6379
 ```
+
+`PORT` controls both the port the Go app binds to and the host port Docker maps to. A single value covers both — if you change it, it changes everywhere.
 
 When the app runs inside Compose, `docker-compose.yml` overrides connection hosts so containers talk over the Docker network:
 
@@ -50,6 +52,8 @@ That means:
 - Use `postgres` and `redis` when running the app inside Compose.
 
 ## Development With Docker Compose
+
+Docker Compose is the primary development environment. The app service runs Air inside the container with the source tree mounted as a volume — file changes on the host trigger a rebuild inside the container automatically.
 
 Start the full development stack:
 
@@ -130,19 +134,13 @@ Ignored directories include:
 - `.agents`
 - `.codex`
 
-Host-only reload, assuming Postgres and Redis are already running:
+Host-only reload, assuming Postgres and Redis are already running in Compose:
 
 ```bash
 air -c .air.toml
 ```
 
-The current app exits immediately after printing, so Air will show:
-
-```text
-Process Exit with Code 0
-```
-
-That is expected until `cmd/api/main.go` starts a long-running server.
+Do not run Air on the host while `terminal-api` is also running — both will compete for the same port.
 
 ## Docker Images
 
@@ -168,18 +166,6 @@ docker build -t terminal-app .
 ```
 
 Run the production image:
-
-```bash
-docker run --rm terminal-app
-```
-
-For the current placeholder app, this prints:
-
-```text
-Hello, world!
-```
-
-If the app later listens on port `8080`, run it with a port mapping:
 
 ```bash
 docker run --rm -p 8080:8080 terminal-app
@@ -305,7 +291,17 @@ Or build and run the production scratch image:
 
 ```bash
 docker build -t terminal-app .
-docker run --rm terminal-app
+docker run --rm -p 8080:8080 terminal-app
+```
+
+### Address already in use
+
+The app and a local Air process are competing for the same port. Only one should run at a time.
+
+If Compose is running, stop the local process. If developing on the host, stop the Compose app service first:
+
+```bash
+docker compose stop app
 ```
 
 ### Postgres keeps restarting
