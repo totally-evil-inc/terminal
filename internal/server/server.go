@@ -8,10 +8,10 @@ import (
 	"github.com/muchirisworld/terminal/internal/config"
 )
 
-func NewServer(cfg *config.ServerConfig) *http.Server {
+func NewServer(cfg *config.ServerConfig, routes http.Handler) *http.Server {
 	return &http.Server{
 		Addr:    fmt.Sprintf(":%d", cfg.Port),
-		Handler: routes(),
+		Handler: routes,
 	}
 }
 

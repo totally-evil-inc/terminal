@@ -12,6 +12,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/muchirisworld/terminal/database"
 	"github.com/muchirisworld/terminal/internal/config"
+	"github.com/muchirisworld/terminal/internal/router"
 	"github.com/muchirisworld/terminal/internal/server"
 )
 
@@ -35,8 +36,10 @@ func main() {
 	}
 	defer db.Close()
 
+	r := router.NewRouter(db)
+
 	app := &Application{
-		server: server.NewServer(cfg.Server),
+		server: server.NewServer(cfg.Server, r.Routes()),
 		db:     db,
 		cfg:    cfg,
 	}
