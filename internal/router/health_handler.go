@@ -28,3 +28,8 @@ func (h *HealthHandler) ready(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("Ok\n"))
 }
+
+func (h *HealthHandler) live(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("Ok\n"))
+}

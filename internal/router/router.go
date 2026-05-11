@@ -25,9 +25,11 @@ func (rtr *Router) Routes() http.Handler {
 	r.Use(middleware.RealIP)
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
+	r.Use(middleware.Heartbeat("/ping"))
 
 	health := NewHealthHandler(rtr.db)
 	r.Route("/health", func(r chi.Router) {
+		r.Get("/livez", health.live)
 		r.Get("/readyz", health.ready)
 	})
 
