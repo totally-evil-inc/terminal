@@ -356,3 +356,5 @@ Build production:
 docker build -t terminal-app .
 docker images terminal-app
 ```
+
+![Alt](https://repobeats.axiom.co/api/embed/8ae105d80894602025afb33b0cac4aa38a956b4b.svg "Repobeats analytics image")
