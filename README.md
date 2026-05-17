@@ -6,7 +6,7 @@ Go API service with a local development workflow based on Docker Compose, Postgr
 
 - Docker
 - Docker Compose
-- Go 1.25+ if you want to run or build on the host
+- Go 1.26+ if you want to run or build on the host
 - Air if you want host-only live reload
 
 Install Air for host-only development:
