@@ -34,6 +34,8 @@ POSTGRES_PORT=5432
 REDIS_PORT=6379
 
 AUTH_SERVER_URL=http://localhost:4000/
+DOCKER_AUTH_SERVER_URL=http://host.docker.internal:4000/
+AUTH_ISSUER=http://localhost:4000
 AUTH_AUDIENCE=http://localhost:8080
 
 DATABASE_URL=postgres://<local-postgres-user>:<local-postgres-pass>@localhost:5432/terminal?sslmode=disable
@@ -42,11 +44,13 @@ REDIS_ADDR=localhost:6379
 
 `PORT` controls both the port the Go app binds to and the host port Docker maps to. A single value covers both — if you change it, it changes everywhere.
 
-`AUTH_SERVER_URL` is the external auth service base URL. The API fetches signing keys from `${AUTH_SERVER_URL}/api/auth/jwks`. `AUTH_AUDIENCE` must match the audience configured by the auth service for this API.
+`AUTH_SERVER_URL` is the external auth service base URL. The API fetches signing keys from `${AUTH_SERVER_URL}/api/auth/jwks`. `AUTH_AUDIENCE` must match the audience configured by the auth service for this API. `AUTH_ISSUER` can be set separately when the URL used to fetch JWKS differs from the issuer embedded in tokens.
 
-When the app runs inside Compose, `docker-compose.yml` overrides connection hosts so containers talk over the Docker network:
+When the app runs inside Compose, `docker-compose.yml` overrides connection hosts so containers talk over the Docker network and can reach the auth server running on the host:
 
 ```env
+AUTH_SERVER_URL=${DOCKER_AUTH_SERVER_URL:-http://host.docker.internal:4000/}
+AUTH_ISSUER=${AUTH_ISSUER:-http://localhost:4000}
 DATABASE_URL=postgres://<db-user>:<db-pass>@postgres:5432/<db-name>?sslmode=disable
 REDIS_ADDR=redis:6379
 ```
@@ -54,6 +58,7 @@ REDIS_ADDR=redis:6379
 That means:
 
 - Use `localhost` when running the Go app on your host.
+- Use `host.docker.internal` from inside Compose to reach services running on the host.
 - Use `postgres` and `redis` when running the app inside Compose.
 
 ## Development With Docker Compose
