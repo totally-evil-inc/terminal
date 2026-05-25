@@ -11,6 +11,7 @@ import (
 
 	"github.com/jmoiron/sqlx"
 	"github.com/muchirisworld/terminal/database"
+	"github.com/muchirisworld/terminal/internal/auth"
 	"github.com/muchirisworld/terminal/internal/config"
 	"github.com/muchirisworld/terminal/internal/router"
 	"github.com/muchirisworld/terminal/internal/server"
@@ -36,7 +37,12 @@ func main() {
 	}
 	defer db.Close()
 
-	r := router.NewRouter(db)
+	verifier, err := auth.NewJWKSVerifier(ctx, cfg.Auth)
+	if err != nil {
+		log.Fatalf("Failed to configure auth verifier: %v", err)
+	}
+
+	r := router.NewRouter(db, verifier)
 
 	app := &Application{
 		server: server.NewServer(cfg.Server, r.Routes()),

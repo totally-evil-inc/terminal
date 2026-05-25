@@ -6,6 +6,7 @@ import (
 	"os"
 	"reflect"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/go-playground/validator/v10"
@@ -18,6 +19,7 @@ type Config struct {
 	App      *AppConfig
 	Server   *ServerConfig
 	Database *DatabaseConfig
+	Auth     *AuthConfig
 }
 
 // AppConfig holds application-wide settings that don't belong to a specific
@@ -45,6 +47,18 @@ type DatabaseConfig struct {
 	MaxIdleConns    int           `env:"DATABASE_MAX_IDLE_CONNS" validate:"gte=1,lte=50"`
 	ConnMaxLifetime time.Duration `env:"DATABASE_CONN_MAX_LIFETIME" validate:"required"`
 	ConnMaxIdleTime time.Duration `env:"DATABASE_CONN_MAX_IDLE_TIME" validate:"required"`
+}
+
+// AuthConfig carries the settings required to verify JWTs issued by the
+// external auth server.
+type AuthConfig struct {
+	ServerURL string `env:"AUTH_SERVER_URL" validate:"required,url"`
+	Issuer    string `env:"AUTH_ISSUER" validate:"required"`
+	Audience  string `env:"AUTH_AUDIENCE" validate:"required"`
+}
+
+func (c *AuthConfig) JWKSURL() string {
+	return strings.TrimRight(c.ServerURL, "/") + "/api/auth/jwks"
 }
 
 var validate = validator.New(validator.WithRequiredStructEnabled())
@@ -76,9 +90,14 @@ func Load() (*Config, error) {
 		ConnMaxLifetime: getDuration("DATABASE_CONN_MAX_LIFETIME", 30*time.Minute),
 		ConnMaxIdleTime: getDuration("DATABASE_CONN_MAX_IDLE_TIME", 5*time.Minute),
 	}
+	authServerURL := getString("AUTH_SERVER_URL", "http://localhost:4000/")
+	authConfig := AuthConfig{
+		ServerURL: authServerURL,
+		Issuer:    getString("AUTH_ISSUER", authServerURL),
+		Audience:  getString("AUTH_AUDIENCE", "http://localhost:8080"),
+	}
 
-
-	for _, s := range []any{appConfig, serverConfig, databaseConfig} {
+	for _, s := range []any{appConfig, serverConfig, databaseConfig, authConfig} {
 		if err := validate.Struct(s); err != nil {
 			var ve validator.ValidationErrors
 			if errors.As(err, &ve) {
@@ -91,7 +110,6 @@ func Load() (*Config, error) {
 		}
 	}
 
-
 	if len(errs) > 0 {
 		return nil, errors.Join(errs...)
 	}
@@ -100,6 +118,7 @@ func Load() (*Config, error) {
 		App:      &appConfig,
 		Server:   &serverConfig,
 		Database: &databaseConfig,
+		Auth:     &authConfig,
 	}, nil
 }
 
